@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dashboard Cobranza · BCP & Yape</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --bg:            #f0f2f7;
+  --surface:       #ffffff;
+  --surface2:      #f7f9fc;
+  --border:        #e2e8f4;
+  --border2:       #cbd5e8;
+  --text:          #0f1a35;
+  --muted:         #7a8aaa;
+  --bcp:           #003087;
+  --bcp2:          #0052cc;
+  --bcp-pale:      #e8f0fd;
+  --yape:          #5b21b6;
+  --yape2:         #7c3aed;
+  --yape-pale:     #f0ebff;
+  --dig:           #0ea5e9;
+  --dig-pale:      #e0f2fe;
+  --preg:          #6366f1;
+  --preg-pale:     #eef2ff;
+  --hib:           #8b5cf6;
+  --hib-pale:      #f3e8ff;
+  --hum:           #64748b;
+  --hum-pale:      #f1f5f9;
+  --green:         #059669;
+  --green-pale:    #d1fae5;
+  --amber:         #d97706;
+  --amber-pale:    #fef3c7;
+  --red:           #dc2626;
+  --red-pale:      #fee2e2;
+  --r:             14px;
+  --gap:           12px;
+  --sh:            0 2px 10px rgba(15,26,53,.07);
+  --sh-lg:         0 6px 28px rgba(15,26,53,.13);
+  /* Bottom nav height (mobile) */
+  --bnav:          62px;
+}
+
+/* ═══════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;font-size:14px;-webkit-font-smoothing:antialiased;}
+
+/* ═══════════════════════════════════════════
+   LAYOUT — DESKTOP (sidebar) / MOBILE (bottom nav)
+═══════════════════════════════════════════ */
+.layout{display:flex;min-height:100vh;}
+
+/* ── Sidebar (visible en desktop) */
+.sidebar{
+  width:210px;background:var(--bcp);
+  padding:24px 0;display:flex;flex-direction:column;
+  position:fixed;left:0;top:0;bottom:0;z-index:200;
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  will-change:transform;
+}
+.sb-logo{padding:0 20px 22px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:10px;}
+.sb-logo-t{font-weight:800;font-size:15px;color:#fff;}
+.sb-logo-s{font-size:9px;color:rgba(255,255,255,.4);letter-spacing:1.2px;text-transform:uppercase;margin-top:2px;}
+.nav-sec{padding:8px 12px 4px;font-size:9px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:1.5px;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 20px;font-size:12px;
+  color:rgba(255,255,255,.65);cursor:pointer;
+  transition:all .2s;border-left:3px solid transparent;
+}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.06);}
+.nav-item.active{color:#fff;border-left-color:var(--dig);background:rgba(255,255,255,.09);font-weight:600;}
+.sb-foot{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.1);font-size:9px;color:rgba(255,255,255,.3);}
+
+/* ── Main content */
+.main{margin-left:210px;flex:1;min-width:0;}
+
+/* ── Topbar */
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:11px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+  box-shadow:var(--sh);gap:8px;flex-wrap:wrap;
+}
+.topbar-l{display:flex;align-items:center;gap:8px;flex:1;min-width:0;}
+.topbar-title{font-weight:700;font-size:15px;white-space:nowrap;}
+.topbar-title span{color:var(--bcp2);}
+.topbar-r{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+
+/* Live badge */
+.live-badge{
+  display:flex;align-items:center;gap:5px;
+  background:var(--dig-pale);color:var(--dig);
+  border-radius:20px;padding:4px 11px;
+  font-size:11px;font-weight:700;white-space:nowrap;
+}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--dig);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Hamburger (mobile only) */
+.menu-toggle{
+  display:none;background:none;border:none;
+  padding:6px;border-radius:8px;
+  cursor:pointer;color:var(--text);font-size:20px;
+  flex-shrink:0;
+}
+
+/* ── Period tabs — horizontal scroll */
+.period-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex:1;}
+.period-wrap::-webkit-scrollbar{display:none;}
+.period-tabs{
+  display:flex;background:var(--bg);
+  border-radius:10px;padding:3px;gap:2px;
+  width:max-content;
+}
+.pt{
+  padding:5px 11px;font-size:11px;
+  font-family:'JetBrains Mono',monospace;font-weight:500;
+  border-radius:7px;cursor:pointer;transition:all .2s;
+  color:var(--muted);white-space:nowrap;
+}
+.pt.active{background:var(--surface);color:var(--bcp);font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.09);}
+
+/* ── Content */
+.content{padding:18px 20px;padding-bottom:24px;}
+
+/* ═══════════════════════════════════════════
+   BOTTOM NAV (mobile only, hidden on desktop)
+═══════════════════════════════════════════ */
+.bottom-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  height:var(--bnav);
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  box-shadow:0 -4px 20px rgba(15,26,53,.1);
+  z-index:200;
+  padding:0 4px;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.bn-inner{display:flex;align-items:center;height:100%;}
+.bn-item{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:3px;padding:6px 4px;
+  cursor:pointer;border-radius:10px;
+  transition:all .2s;
+  color:var(--muted);font-size:9px;font-weight:500;
+  text-transform:uppercase;letter-spacing:.5px;
+}
+.bn-item.active{color:var(--bcp2);}
+.bn-icon{font-size:18px;line-height:1;}
+
+/* ═══════════════════════════════════════════
+   OVERLAY (sidebar mobile)
+═══════════════════════════════════════════ */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.45);z-index:190;
+  backdrop-filter:blur(2px);
+}
+.overlay.show{display:block;}
+
+/* ═══════════════════════════════════════════
+   FILTERS
+═══════════════════════════════════════════ */
+.filter-strip{
+  display:flex;gap:6px;align-items:center;
+  flex-wrap:wrap;margin-bottom:16px;
+}
+.filter-sep{width:1px;height:24px;background:var(--border2);}
+.fs-label{font-size:11px;color:var(--muted);white-space:nowrap;}
+.fchip{
+  padding:5px 12px;border-radius:20px;
+  font-size:12px;font-weight:500;
+  border:1.5px solid var(--border2);
+  background:var(--surface);color:var(--muted);
+  cursor:pointer;transition:all .2s;
+  -webkit-user-select:none;user-select:none;
+}
+.fchip:active{transform:scale(.96);}
+.fchip.fa{border-color:var(--bcp2);background:var(--bcp-pale);color:var(--bcp);font-weight:600;}
+.fchip.fy{border-color:var(--yape2);background:var(--yape-pale);color:var(--yape2);font-weight:600;}
+
+/* ═══════════════════════════════════════════
+   SECTION HEADER
+═══════════════════════════════════════════ */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
+.sec-title{font-weight:700;font-size:14px;display:flex;align-items:center;gap:7px;}
+.sec-title::before{content:'';display:block;width:3px;height:14px;border-radius:2px;background:var(--dig);}
+.sec-sub{font-size:10px;color:var(--muted);font-weight:400;margin-left:2px;}
+
+/* ═══════════════════════════════════════════
+   HERO DIGITALIZACIÓN
+═══════════════════════════════════════════ */
+.digital-hero{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:var(--gap);margin-bottom:16px;
+}
+.hero-card{
+  background:linear-gradient(135deg,var(--bcp) 0%,var(--bcp2) 100%);
+  border-radius:var(--r);padding:20px;color:#fff;
+  box-shadow:var(--sh-lg);position:relative;overflow:hidden;
+}
+.hero-card::after{
+  content:'';position:absolute;right:-24px;top:-24px;
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(255,255,255,.07);
+}
+.hero-eyebrow{font-size:10px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;opacity:.7;margin-bottom:5px;}
+.hero-pct{font-family:'JetBrains Mono',monospace;font-weight:900;font-size:clamp(32px,5vw,50px);line-height:1;margin-bottom:4px;}
+.hero-label{font-size:11px;opacity:.75;margin-bottom:12px;line-height:1.4;}
+.hero-bar-track{height:4px;background:rgba(255,255,255,.2);border-radius:4px;margin-bottom:8px;}
+.hero-bar-fill{height:100%;border-radius:4px;background:rgba(255,255,255,.85);transition:width 1.2s cubic-bezier(.23,1,.32,1);}
+.hero-split{display:flex;justify-content:space-between;font-size:10px;opacity:.65;}
+
+.sub-digital-card{
+  background:var(--surface);border-radius:var(--r);
+  border:1px solid var(--border);box-shadow:var(--sh);
+  padding:16px;display:flex;flex-direction:column;justify-content:space-between;
+  transition:box-shadow .2s,transform .2s;
+}
+.sub-digital-card:active{transform:scale(.99);}
+.sdc-label{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:3px;}
+.sdc-brand{font-size:11px;font-weight:700;margin-bottom:6px;}
+.sdc-pct{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:26px;line-height:1;}
+.sdc-sub{font-size:10px;color:var(--muted);margin-top:3px;margin-bottom:10px;}
+.sdc-bar{height:4px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.sdc-fill{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(.23,1,.32,1);}
+
+/* ═══════════════════════════════════════════
+   KPI CARDS
+═══════════════════════════════════════════ */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap);margin-bottom:16px;}
+.kpi{
+  background:var(--surface);border-radius:var(--r);
+  padding:16px;border:1px solid var(--border);
+  box-shadow:var(--sh);position:relative;overflow:hidden;
+  transition:box-shadow .2s,transform .2s;
+}
+.kpi:active{transform:scale(.99);}
+.kpi-accent{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0;}
+.kpi-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:9px;}
+.kpi-label{font-size:9px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+.kpi-val{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:clamp(16px,2vw,24px);line-height:1;margin-bottom:5px;}
+.kpi-note{font-size:9px;color:var(--muted);}
+
+/* ═══════════════════════════════════════════
+   BRAND SPLIT
+═══════════════════════════════════════════ */
+.brand-split{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap);margin-bottom:16px;}
+.bcard{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden;}
+.bcard-hdr{padding:14px 16px;display:flex;align-items:center;gap:10px;}
+.brand-badge{padding:4px 10px;border-radius:7px;font-weight:800;font-size:12px;}
+.brand-badge.bcp{background:var(--bcp);color:#fff;}
+.brand-badge.yape{background:var(--yape);color:#fff;}
+.bcard-t{font-weight:700;font-size:13px;}
+.bcard-s{font-size:10px;color:var(--muted);}
+.mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);}
+.ms{background:var(--surface);padding:10px 12px;text-align:center;}
+.ms-val{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;margin-bottom:2px;}
+.ms-label{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;}
+
+/* ═══════════════════════════════════════════
+   TABLES
+═══════════════════════════════════════════ */
+.table-sec{margin-bottom:16px;}
+.twrap{
+  background:var(--surface);border-radius:var(--r);
+  border:1px solid var(--border);box-shadow:var(--sh);
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+}
+table.dt{width:100%;border-collapse:collapse;min-width:580px;}
+table.dt thead th{
+  background:var(--surface2);padding:8px 11px;
+  font-size:9px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.7px;color:var(--muted);
+  text-align:right;border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+table.dt thead th:first-child{text-align:left;}
+table.dt thead th:last-child{text-align:center;}
+table.dt tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+table.dt tbody tr:last-child{border-bottom:none;font-weight:700;background:var(--surface2);}
+table.dt tbody tr:not(:last-child):hover{background:var(--bg);}
+table.dt tbody td{
+  padding:9px 11px;font-size:12px;
+  text-align:right;font-family:'JetBrains Mono',monospace;
+}
+table.dt tbody td:first-child{text-align:left;font-family:'Outfit',sans-serif;font-weight:500;}
+table.dt tbody td:last-child{text-align:center;}
+table.dt tbody tr:last-child td{font-family:'Outfit',sans-serif;}
+.cdot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.pill{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;white-space:nowrap;}
+.pill-digital{background:var(--dig-pale);color:var(--dig);}
+.pill-preg   {background:var(--preg-pale);color:#4338ca;}
+.pill-hibrido{background:var(--hib-pale);color:#7c3aed;}
+.pill-human  {background:var(--hum-pale);color:#475569;}
+
+/* ═══════════════════════════════════════════
+   CHARTS
+═══════════════════════════════════════════ */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap);margin-bottom:16px;}
+.ccrd{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);padding:16px;}
+.chdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:5px;}
+.ctitle{font-weight:700;font-size:13px;}
+.csub{font-size:10px;color:var(--muted);margin-top:1px;}
+.leg-row{display:flex;gap:10px;flex-wrap:wrap;}
+.leg{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);}
+.ldot{width:6px;height:6px;border-radius:50%;}
+svg.chart{display:block;width:100%;overflow:visible;}
+
+/* ═══════════════════════════════════════════
+   TOOLTIP
+═══════════════════════════════════════════ */
+.tooltip{
+  position:fixed;background:#0f1a35;color:#fff;
+  border-radius:10px;padding:10px 13px;
+  font-size:11px;pointer-events:none;
+  opacity:0;transition:opacity .15s;z-index:999;
+  min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.25);
+}
+.tooltip.show{opacity:1;}
+.tt-t{font-weight:700;font-size:12px;margin-bottom:5px;border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:4px;}
+.tt-r{display:flex;justify-content:space-between;gap:12px;margin-top:3px;}
+.tt-k{color:rgba(255,255,255,.55);}
+.tt-v{font-weight:600;font-family:'JetBrains Mono',monospace;}
+
+/* ═══════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.fu{animation:fadeUp .35s ease both;}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — TABLET (≤1024px)
+═══════════════════════════════════════════ */
+@media(max-width:1024px){
+  .digital-hero{grid-template-columns:1fr 1fr;}
+  .kpi-row{grid-template-columns:1fr 1fr;}
+  .chart-grid{grid-template-columns:1fr 1fr;}
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — MOBILE (≤768px)
+═══════════════════════════════════════════ */
+@media(max-width:768px){
+  /* Sidebar off-canvas */
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+
+  /* No margin left — full width */
+  .main{margin-left:0;}
+
+  /* Show hamburger, show bottom nav */
+  .menu-toggle{display:flex;align-items:center;justify-content:center;}
+  .bottom-nav{display:block;}
+
+  /* Content padding — leave room for bottom nav */
+  .content{
+    padding:14px 12px;
+    padding-bottom:calc(var(--bnav) + 16px);
+  }
+
+  /* Topbar compact */
+  .topbar{padding:10px 12px;}
+  .topbar-title{font-size:14px;}
+  .live-badge{padding:4px 9px;font-size:10px;}
+
+  /* Period tabs scrollable */
+  .period-wrap{max-width:calc(100vw - 180px);}
+
+  /* Hero: stack 2 columns */
+  .digital-hero{grid-template-columns:1fr 1fr;}
+  .hero-card{grid-column:1/-1;} /* full width */
+  .hero-pct{font-size:40px;}
+
+  /* KPIs 2 col */
+  .kpi-row{grid-template-columns:1fr 1fr;}
+
+  /* Brand split: stack */
+  .brand-split{grid-template-columns:1fr;}
+
+  /* Charts 1 col */
+  .chart-grid{grid-template-columns:1fr;}
+
+  /* Tables: smaller font */
+  table.dt{font-size:11px;}
+  table.dt tbody td{padding:8px 9px;}
+  table.dt thead th{padding:7px 9px;}
+
+  /* Section titles compact */
+  .sec-title{font-size:13px;}
+  .filter-strip{gap:5px;}
+  .fchip{padding:4px 10px;font-size:11px;}
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — SMALL MOBILE (≤420px)
+═══════════════════════════════════════════ */
+@media(max-width:420px){
+  /* Hero full-width single column */
+  .digital-hero{grid-template-columns:1fr;}
+
+  /* KPIs still 2 col (good enough) */
+  .kpi-row{grid-template-columns:1fr 1fr;}
+
+  /* Shrink hero number */
+  .hero-pct{font-size:34px;}
+
+  /* Mini stats 2 col */
+  .mini-stats{grid-template-columns:1fr 1fr;}
+  .mini-stats .ms:last-child{grid-column:1/-1;}
+
+  /* Filter chips wrap naturally */
+  .filter-sep{display:none;}
+}
+</style>
+</head>
+<body>
+<div id="tt" class="tooltip"><div class="tt-t" id="tt-t"></div><div id="tt-b"></div></div>
+<div class="overlay" id="overlay"></div>
+
+<div class="layout">
+
+<!-- ══ SIDEBAR ════════════════════════════════ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-t">Cobranza Pro</div>
+    <div class="sb-logo-s">BCP · Yape · 2026–2027</div>
+  </div>
+  <div class="nav-sec">Análisis</div>
+  <div class="nav-item active">📊 Resumen General</div>
+  <div class="nav-item">🤖 Digitalización</div>
+  <div class="nav-item">💰 Deuda & Recupero</div>
+  <div class="nav-item">🎯 Efectividad</div>
+  <div class="nav-sec">Portafolios</div>
+  <div class="nav-item">🏦 BCP</div>
+  <div class="nav-item">💜 Yape</div>
+  <div class="sb-foot">Data real Dic-26 → Abr-27 · Activo</div>
+</nav>
+
+<!-- ══ MAIN ════════════════════════════════════ -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-l">
+      <button class="menu-toggle" id="menuToggle" aria-label="Menú">☰</button>
+      <div class="topbar-title">Dashboard <span>Cobranza</span></div>
+      <div class="period-wrap">
+        <div class="period-tabs" id="periodTabs">
+          <div class="pt active" data-p="all">Todos</div>
+          <div class="pt" data-p="Dic-26">Dic-26</div>
+          <div class="pt" data-p="Ene-27">Ene-27</div>
+          <div class="pt" data-p="Feb-27">Feb-27</div>
+          <div class="pt" data-p="Mar-27">Mar-27</div>
+          <div class="pt" data-p="Abr-27">Abr-27</div>
+        </div>
+      </div>
+    </div>
+    <div class="topbar-r">
+      <div class="live-badge"><span class="live-dot"></span>Activa</div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Filters -->
+    <div class="filter-strip">
+      <span class="fs-label">Marca:</span>
+      <div id="brandF" style="display:flex;gap:5px;flex-wrap:wrap;">
+        <span class="fchip fa" data-b="all">🔵🟣 Todas</span>
+        <span class="fchip" data-b="bcp">🏦 BCP</span>
+        <span class="fchip" data-b="yape">💜 Yape</span>
+      </div>
+      <div class="filter-sep"></div>
+      <span class="fs-label">Portafolio:</span>
+      <div id="canalF" style="display:flex;gap:5px;flex-wrap:wrap;">
+        <span class="fchip fa" data-c="all">Todos</span>
+        <span class="fchip" data-c="PreGestion">Pre-gestión</span>
+        <span class="fchip" data-c="Digital">Digital</span>
+        <span class="fchip" data-c="DigitalTrad">Dig+Trad</span>
+        <span class="fchip" data-c="Tradicional">Tradicional</span>
+      </div>
+    </div>
+
+    <!-- HERO DIGITALIZACIÓN -->
+    <div class="sec-hdr">
+      <div class="sec-title">Digitalización de Cobranza
+        <span class="sec-sub" id="heroSub"></span>
+      </div>
+    </div>
+    <div class="digital-hero" id="digitalHero"></div>
+
+    <!-- KPIs -->
+    <div class="sec-hdr">
+      <div class="sec-title">Indicadores Globales <span class="sec-sub" id="kpiSub"></span></div>
+    </div>
+    <div class="kpi-row" id="kpiRow"></div>
+
+    <!-- BRAND CARDS -->
+    <div class="sec-hdr">
+      <div class="sec-title">Detalle por Marca <span class="sec-sub" id="brandSub"></span></div>
+    </div>
+    <div class="brand-split" id="brandSplit"></div>
+
+    <!-- TABLES -->
+    <div class="table-sec" id="tableSec"></div>
+
+    <!-- CHARTS -->
+    <div class="sec-hdr">
+      <div class="sec-title">Evolución Mensual <span class="sec-sub">Toca un punto para filtrar mes</span></div>
+    </div>
+    <div class="chart-grid">
+      <div class="ccrd">
+        <div class="chdr">
+          <div><div class="ctitle">Clientes</div><div class="csub">BCP + Yape</div></div>
+          <div class="leg-row">
+            <div class="leg"><span class="ldot" style="background:var(--bcp2)"></span>BCP</div>
+            <div class="leg"><span class="ldot" style="background:var(--yape2)"></span>Yape</div>
+          </div>
+        </div>
+        <svg class="chart" id="cliChart" height="180" viewBox="0 0 480 180"></svg>
+      </div>
+      <div class="ccrd">
+        <div class="chdr">
+          <div><div class="ctitle">% Sin Contacto</div><div class="csub">Digital + Pre-gestión</div></div>
+          <div class="leg-row">
+            <div class="leg"><span class="ldot" style="background:var(--bcp2)"></span>BCP</div>
+            <div class="leg"><span class="ldot" style="background:var(--yape2)"></span>Yape</div>
+          </div>
+        </div>
+        <svg class="chart" id="digChart" height="180" viewBox="0 0 480 180"></svg>
+      </div>
+      <div class="ccrd">
+        <div class="chdr">
+          <div><div class="ctitle">Deuda Vencida (MM)</div><div class="csub">S/ millones</div></div>
+          <div class="leg-row">
+            <div class="leg"><span class="ldot" style="background:var(--bcp2)"></span>BCP</div>
+            <div class="leg"><span class="ldot" style="background:var(--yape2)"></span>Yape</div>
+          </div>
+        </div>
+        <svg class="chart" id="dvChart" height="180" viewBox="0 0 480 180"></svg>
+      </div>
+      <div class="ccrd">
+        <div class="chdr">
+          <div><div class="ctitle">Efectividad (%)</div><div class="csub">Recupero / Deuda</div></div>
+          <div class="leg-row">
+            <div class="leg"><span class="ldot" style="background:var(--bcp2)"></span>BCP</div>
+            <div class="leg"><span class="ldot" style="background:var(--yape2)"></span>Yape</div>
+          </div>
+        </div>
+        <svg class="chart" id="efChart" height="180" viewBox="0 0 480 180"></svg>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ══ BOTTOM NAV (mobile) ════════════════════ -->
+<div class="bottom-nav">
+  <div class="bn-inner">
+    <div class="bn-item active" data-section="resumen">
+      <div class="bn-icon">📊</div>Resumen
+    </div>
+    <div class="bn-item" data-section="digital">
+      <div class="bn-icon">🤖</div>Digital
+    </div>
+    <div class="bn-item" data-section="marcas">
+      <div class="bn-icon">🏦</div>Marcas
+    </div>
+    <div class="bn-item" data-section="tablas">
+      <div class="bn-icon">📋</div>Tablas
+    </div>
+    <div class="bn-item" data-section="graficos">
+      <div class="bn-icon">📈</div>Gráficos
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   DATA REAL
+══════════════════════════════════════════════ */
+const MONTHS = ['Dic-26','Ene-27','Feb-27','Mar-27','Abr-27'];
+
+const BCP = {
+  clientes:{
+    PreGestion: [190578,177927,154016,184937,176087],
+    Digital:    [38257, 42231, 40481, 48263, 50506],
+    DigitalTrad:[0,     2773,  7046,  10642, 10812],
+    Tradicional:[46705, 49389, 40888, 43897, 39151],
+  },
+  deuda:{
+    PreGestion: [315.40,274.80,237.40,332.10,254.00],
+    Digital:    [57.70, 63.90, 57.60, 83.00, 76.70],
+    DigitalTrad:[0,     14.10, 17.00, 32.80, 35.10],
+    Tradicional:[171.20,178.90,138.70,172.40,162.10],
+  },
+  recupero:{
+    PreGestion: [196.90,162.80,131.90,143.00,135.50],
+    Digital:    [34.00, 36.70, 32.50, 45.60, 43.60],
+    DigitalTrad:[0,     9.30,  11.00, 18.70, 18.50],
+    Tradicional:[65.20, 74.20, 52.50, 61.90, 52.70],
+  }
+};
+
+const YAPE = {
+  clientes:{
+    PreGestion: [223771,245834,215236,264669,270158],
+    Digital:    [121481,174116,181037,264795,339349],
+    DigitalTrad:[0,0,0,0,0],
+    Tradicional:[17897, 18145, 20506, 17287, 0],
+  },
+  deuda:{
+    PreGestion: [68.80, 84.50, 78.90,114.90,102.70],
+    Digital:    [30.10, 38.20, 36.50, 57.90, 77.40],
+    DigitalTrad:[0,0,0,0,0],
+    Tradicional:[6.00,  7.70,  8.40, 10.80, 0],
+  },
+  recupero:{
+    PreGestion: [33.10, 38.40, 32.80, 36.00, 37.60],
+    Digital:    [12.00, 16.10, 14.80, 25.70, 31.80],
+    DigitalTrad:[0,0,0,0,0],
+    Tradicional:[1.40,  1.60,  1.40,  1.00,  0],
+  }
+};
+
+const CANALES = ['PreGestion','Digital','DigitalTrad','Tradicional'];
+const CLABELS = {PreGestion:'Pre-gestión',Digital:'Digital',DigitalTrad:'Digital+Tradicional',Tradicional:'Tradicional'};
+const CCOLORS = {PreGestion:'#6366f1',Digital:'#0ea5e9',DigitalTrad:'#8b5cf6',Tradicional:'#64748b'};
+const DIGITAL_C = ['PreGestion','Digital'];
+
+const CPILL = {
+  PreGestion:  {cls:'pill-preg',    label:'🤖 Sin contacto'},
+  Digital:     {cls:'pill-digital', label:'🤖 Sin contacto'},
+  DigitalTrad: {cls:'pill-hibrido', label:'⚡ Híbrido'},
+  Tradicional: {cls:'pill-human',   label:'👤 Humano'},
+};
+
+/* ══════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════ */
+const S = {period:'all', brand:'all', canal:'all'};
+
+/* ══════════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════════ */
+const fN  = n => n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':Math.round(n).toString();
+const fMM = n => n.toFixed(2)+' MM';
+const fPct= (a,b) => b?(a/b*100).toFixed(1)+'%':'—';
+
+function getIdxs(){ return S.period==='all'?MONTHS.map((_,i)=>i):[MONTHS.indexOf(S.period)]; }
+function getCanales(){ return S.canal==='all'?CANALES:[S.canal]; }
+function sum(arr,idxs){ return idxs.reduce((a,i)=>a+(arr[i]||0),0); }
+
+function calcBrand(data,idxs,canales){
+  let cl=0,dv=0,rc=0;
+  canales.forEach(c=>{cl+=sum(data.clientes[c],idxs);dv+=sum(data.deuda[c],idxs);rc+=sum(data.recupero[c],idxs);});
+  return {cl,dv,rc,ef:dv?rc/dv:0};
+}
+
+function calcDigital(data,idxs,canales){
+  const dc=canales.filter(c=>DIGITAL_C.includes(c));
+  const dCl=dc.reduce((a,c)=>a+sum(data.clientes[c],idxs),0);
+  const tot=canales.reduce((a,c)=>a+sum(data.clientes[c],idxs),0);
+  return {dCl,tot,pct:tot?dCl/tot:0};
+}
+
+function getMonthly(data){
+  const canales=getCanales();
+  return MONTHS.map((_,i)=>{
+    let cl=0,dv=0,rc=0,dCl=0;
+    canales.forEach(c=>{
+      const v=data.clientes[c][i]||0;
+      cl+=v;dv+=data.deuda[c][i]||0;rc+=data.recupero[c][i]||0;
+      if(DIGITAL_C.includes(c))dCl+=v;
+    });
+    return {cl,dv,rc,ef:dv?rc/dv*100:0,digPct:cl?dCl/cl*100:0};
+  });
+}
+
+/* ══════════════════════════════════════════════
+   TOOLTIP (tap/hover)
+══════════════════════════════════════════════ */
+const TTel=document.getElementById('tt');
+let ttTimer=null;
+function showTT(e,title,rows){
+  document.getElementById('tt-t').textContent=title;
+  document.getElementById('tt-b').innerHTML=rows.map(r=>`<div class="tt-r"><span class="tt-k">${r[0]}</span><span class="tt-v">${r[1]}</span></div>`).join('');
+  TTel.classList.add('show');
+  const isTouchEvent=e.touches||e.changedTouches;
+  const cx=isTouchEvent?(e.touches?.[0]||e.changedTouches?.[0])?.clientX||e.clientX:e.clientX;
+  const cy=isTouchEvent?(e.touches?.[0]||e.changedTouches?.[0])?.clientY||e.clientY:e.clientY;
+  TTel.style.left=Math.min(cx+14,window.innerWidth-185)+'px';
+  TTel.style.top=Math.max(cy-90,10)+'px';
+  clearTimeout(ttTimer);
+  ttTimer=setTimeout(hideTT,2200);
+}
+function moveTT(e){
+  if(!TTel.classList.contains('show'))return;
+  TTel.style.left=Math.min(e.clientX+14,window.innerWidth-185)+'px';
+  TTel.style.top=Math.max(e.clientY-90,10)+'px';
+}
+function hideTT(){TTel.classList.remove('show');}
+
+/* ══════════════════════════════════════════════
+   RENDER: HERO
+══════════════════════════════════════════════ */
+function renderHero(){
+  const idxs=getIdxs(),canales=getCanales();
+  const brands=S.brand==='all'?['bcp','yape']:[S.brand];
+
+  let dTot=0,totAll=0;
+  brands.forEach(b=>{const r=calcDigital(b==='bcp'?BCP:YAPE,idxs,canales);dTot+=r.dCl;totAll+=r.tot;});
+  const gPct=totAll?dTot/totAll:0;
+
+  // Trend Dic→Abr
+  let dF=0,tF=0,dL=0,tL=0;
+  brands.forEach(b=>{
+    const D=b==='bcp'?BCP:YAPE;
+    canales.forEach(c=>{
+      tF+=D.clientes[c][0]||0;tL+=D.clientes[c][4]||0;
+      if(DIGITAL_C.includes(c)){dF+=D.clientes[c][0]||0;dL+=D.clientes[c][4]||0;}
+    });
+  });
+  const p0=tF?dF/tF*100:0,p4=tL?dL/tL*100:0,delta=p4-p0;
+
+  document.getElementById('heroSub').textContent=
+    (S.period==='all'?'Dic-26 → Abr-27':S.period)+' · '+
+    (S.brand==='all'?'BCP + Yape':S.brand.toUpperCase());
+
+  const subCards=brands.map((b,i)=>{
+    const r=calcDigital(b==='bcp'?BCP:YAPE,idxs,canales);
+    const col=b==='bcp'?'var(--bcp2)':'var(--yape2)';
+    return `<div class="sub-digital-card fu" style="animation-delay:${.1+i*.07}s">
+      <div>
+        <div class="sdc-label">Sin contacto humano</div>
+        <div class="sdc-brand" style="color:${col}">${b==='bcp'?'BCP':'Yape'}</div>
+        <div class="sdc-pct" style="color:${col}">${(r.pct*100).toFixed(1)}%</div>
+        <div class="sdc-sub">${fN(r.dCl)} de ${fN(r.tot)}</div>
+      </div>
+      <div class="sdc-bar"><div class="sdc-fill" style="width:${r.pct*100}%;background:${col}"></div></div>
+    </div>`;
+  }).join('');
+
+  const trendCard=S.period==='all'&&S.brand==='all'?`
+    <div class="sub-digital-card fu" style="animation-delay:.25s">
+      <div>
+        <div class="sdc-label">Crecimiento</div>
+        <div class="sdc-brand" style="color:var(--muted)">Dic-26 → Abr-27</div>
+        <div class="sdc-pct" style="color:${delta>=0?'var(--green)':'var(--red)'}">${delta>=0?'+':''}${delta.toFixed(1)}pp</div>
+        <div class="sdc-sub">${p0.toFixed(1)}% → ${p4.toFixed(1)}%</div>
+      </div>
+      <div class="sdc-bar"><div class="sdc-fill" style="width:${Math.min(Math.abs(delta)*4,100)}%;background:${delta>=0?'var(--green)':'var(--red)'}"></div></div>
+    </div>`:'';
+
+  document.getElementById('digitalHero').innerHTML=`
+    <div class="hero-card fu">
+      <div class="hero-eyebrow">📱 Sin contacto humano</div>
+      <div class="hero-pct">${(gPct*100).toFixed(1)}%</div>
+      <div class="hero-label">Digital + Pre-gestión sobre total clientes</div>
+      <div class="hero-bar-track"><div class="hero-bar-fill" style="width:${gPct*100}%"></div></div>
+      <div class="hero-split"><span>🤖 ${fN(dTot)} sin contacto</span><span>👤 ${fN(totAll-dTot)} con agente</span></div>
+    </div>
+    ${subCards}${trendCard}`;
+}
+
+/* ══════════════════════════════════════════════
+   RENDER: KPIs
+══════════════════════════════════════════════ */
+function renderKPIs(){
+  const idxs=getIdxs(),canales=getCanales();
+  const brands=S.brand==='all'?['bcp','yape']:[S.brand];
+  let tot={cl:0,dv:0,rc:0};
+  brands.forEach(b=>{const r=calcBrand(b==='bcp'?BCP:YAPE,idxs,canales);tot.cl+=r.cl;tot.dv+=r.dv;tot.rc+=r.rc;});
+  const ef=tot.dv?tot.rc/tot.dv:0;
+  const pl=S.period==='all'?'Dic-26 → Abr-27':S.period;
+  const bl=S.brand==='all'?'BCP + Yape':S.brand.toUpperCase();
+  document.getElementById('kpiSub').textContent=`${pl} · ${bl}`;
+  document.getElementById('brandSub').textContent=pl;
+
+  const cards=[
+    {l:'Clientes',   v:fN(tot.cl),         ic:'👥',col:'var(--bcp2)',   bg:'var(--bcp-pale)',  n:'Portafolios sel.'},
+    {l:'Deuda',      v:'S/ '+fMM(tot.dv),  ic:'📋',col:'var(--red)',    bg:'var(--red-pale)',  n:'Millones de soles'},
+    {l:'Recupero',   v:'S/ '+fMM(tot.rc),  ic:'💰',col:'var(--green)',  bg:'var(--green-pale)',n:'Millones de soles'},
+    {l:'Efectividad',v:(ef*100).toFixed(1)+'%',ic:'🎯',col:ef>0.5?'var(--green)':'var(--amber)',bg:ef>0.5?'var(--green-pale)':'var(--amber-pale)',n:'Recupero / Deuda'},
+  ];
+  document.getElementById('kpiRow').innerHTML=cards.map((c,i)=>`
+    <div class="kpi fu" style="animation-delay:${i*.06}s">
+      <div class="kpi-accent" style="background:${c.col}"></div>
+      <div class="kpi-icon" style="background:${c.bg}">${c.ic}</div>
+      <div class="kpi-label">${c.l}</div>
+      <div class="kpi-val" style="color:${c.col}">${c.v}</div>
+      <div class="kpi-note">${c.n}</div>
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════════════════
+   RENDER: BRAND CARDS
+══════════════════════════════════════════════ */
+function renderBrandCards(){
+  const idxs=getIdxs(),canales=getCanales();
+  const brands=S.brand==='all'?['bcp','yape']:[S.brand];
+  document.getElementById('brandSplit').innerHTML=brands.map(b=>{
+    const D=b==='bcp'?BCP:YAPE;
+    const r=calcBrand(D,idxs,canales);
+    const rd=calcDigital(D,idxs,canales);
+    const lbl=b==='bcp'?'BCP':'YAPE',col=b==='bcp'?'var(--bcp2)':'var(--yape2)';
+    return `<div class="bcard">
+      <div class="bcard-hdr">
+        <div class="brand-badge ${b}">${lbl}</div>
+        <div>
+          <div class="bcard-t">${fN(r.cl)} clientes</div>
+          <div class="bcard-s">🤖 ${(rd.pct*100).toFixed(1)}% sin contacto · Ef. ${(r.ef*100).toFixed(1)}%</div>
+        </div>
+      </div>
+      <div class="mini-stats">
+        <div class="ms"><div class="ms-val" style="color:${col}">S/${fMM(r.dv)}</div><div class="ms-label">Deuda</div></div>
+        <div class="ms"><div class="ms-val" style="color:var(--green)">S/${fMM(r.rc)}</div><div class="ms-label">Recupero</div></div>
+        <div class="ms"><div class="ms-val" style="color:${r.ef>0.5?'var(--green)':'var(--amber)'}">${(r.ef*100).toFixed(1)}%</div><div class="ms-label">Efect.</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════
+   RENDER: TABLES
+══════════════════════════════════════════════ */
+function renderTables(){
+  const idxs=getIdxs(),canales=getCanales();
+  const brands=S.brand==='all'?['bcp','yape']:[S.brand];
+  document.getElementById('tableSec').innerHTML=brands.map(b=>{
+    const D=b==='bcp'?BCP:YAPE,lbl=b==='bcp'?'BCP':'YAPE';
+    const rows=canales.map(c=>{
+      const cl=sum(D.clientes[c],idxs),dv=sum(D.deuda[c],idxs),rc=sum(D.recupero[c],idxs);
+      return {c,cl,dv,rc,ef:dv?rc/dv*100:null};
+    }).filter(r=>r.cl>0||r.dv>0);
+    const tCl=rows.reduce((a,r)=>a+r.cl,0);
+    const tDv=rows.reduce((a,r)=>a+r.dv,0);
+    const tRc=rows.reduce((a,r)=>a+r.rc,0);
+    const tEf=tDv?tRc/tDv*100:0;
+    const dCl=rows.filter(r=>DIGITAL_C.includes(r.c)).reduce((a,r)=>a+r.cl,0);
+    const dPct=tCl?dCl/tCl*100:0;
+    return `<div style="margin-bottom:14px">
+      <div class="sec-hdr" style="margin-bottom:8px">
+        <div class="sec-title" style="font-size:13px">
+          <span class="brand-badge ${b}" style="font-size:11px">${lbl}</span>
+          &nbsp;${S.period==='all'?'Dic-26 → Abr-27':S.period}
+          <span class="sec-sub">🤖 ${dPct.toFixed(1)}% sin contacto</span>
+        </div>
+      </div>
+      <div class="twrap">
+        <table class="dt">
+          <thead><tr>
+            <th>Portafolio</th><th>Clientes</th><th>%</th>
+            <th>Deuda MM</th><th>Recupero MM</th><th>Efect.</th><th>Canal</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map(r=>{const p=CPILL[r.c];return `<tr>
+              <td><span class="cdot" style="background:${CCOLORS[r.c]}"></span>${CLABELS[r.c]}</td>
+              <td>${fN(r.cl)}</td>
+              <td style="color:var(--muted)">${fPct(r.cl,tCl)}</td>
+              <td>${r.dv.toFixed(2)}</td>
+              <td>${r.rc.toFixed(2)}</td>
+              <td style="color:${r.ef===null?'var(--muted)':r.ef>50?'var(--green)':'var(--amber)'}">
+                ${r.ef===null?'—':r.ef.toFixed(1)+'%'}</td>
+              <td><span class="pill ${p.cls}">${p.label}</span></td>
+            </tr>`;}).join('')}
+            <tr>
+              <td>Total</td><td>${fN(tCl)}</td><td>100%</td>
+              <td>${tDv.toFixed(2)}</td><td>${tRc.toFixed(2)}</td>
+              <td style="color:${tEf>50?'var(--green)':'var(--amber)'}">${tEf.toFixed(1)}%</td>
+              <td style="font-weight:700;color:var(--dig)">🤖 ${dPct.toFixed(1)}%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════
+   RENDER: CHARTS
+══════════════════════════════════════════════ */
+function drawChart(id,bcpS,yapeS,fmtV){
+  const svg=document.getElementById(id);if(!svg)return;
+  const W=480,H=180,P={t:12,r:12,b:28,l:46};
+  const cW=W-P.l-P.r,cH=H-P.t-P.b,n=MONTHS.length;
+  const CB='#0052cc',CY='#7c3aed';
+  const all=[
+    ...(S.brand!=='yape'?bcpS:[]),
+    ...(S.brand!=='bcp'?yapeS:[])
+  ].filter(v=>v>0);
+  if(!all.length){
+    svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="Outfit">Sin datos</text>`;
+    return;
+  }
+  const mn=Math.min(...all)*.85,mx=Math.max(...all)*1.12;
+  const px=i=>P.l+(i/(n-1))*cW;
+  const py=v=>P.t+cH-((v-mn)/(mx-mn))*cH;
+  let h='';
+
+  for(let t=0;t<=3;t++){
+    const y=P.t+(t/3)*cH,v=mn+(mx-mn)*(1-t/3);
+    h+=`<line x1="${P.l}" y1="${y}" x2="${W-P.r}" y2="${y}" stroke="#e2e8f4" stroke-width="1"/>`;
+    h+=`<text x="${P.l-4}" y="${y+4}" text-anchor="end" fill="#94a3b8" font-size="9" font-family="JetBrains Mono">${fmtV(v)}</text>`;
+  }
+  MONTHS.forEach((m,i)=>{
+    const sel=S.period!=='all'&&m===S.period;
+    h+=`<text x="${px(i)}" y="${H-6}" text-anchor="middle" fill="${sel?CB:'#94a3b8'}" font-size="9" font-family="JetBrains Mono" font-weight="${sel?700:400}">${m}</text>`;
+    if(sel)h+=`<line x1="${px(i)}" y1="${P.t}" x2="${px(i)}" y2="${P.t+cH}" stroke="${CB}" stroke-width="1" stroke-dasharray="3,3" opacity=".35"/>`;
+  });
+
+  const drawS=(series,color,brand)=>{
+    if((brand==='bcp'&&S.brand==='yape')||(brand==='yape'&&S.brand==='bcp'))return;
+    const pts=series.map((v,i)=>`${px(i)},${py(v)}`);
+    const gid=`g${id}${brand}`;
+    h+=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity=".12"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="M${pts.join('L')}L${px(n-1)},${P.t+cH}L${px(0)},${P.t+cH}Z" fill="url(#${gid})"/>
+    <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    series.forEach((v,i)=>{
+      const sel=S.period!=='all'&&MONTHS[i]===S.period;
+      /* Large touch target (invisible) + visible dot */
+      h+=`<circle cx="${px(i)}" cy="${py(v)}" r="18" fill="transparent"
+          class="dt-dot" data-b="${brand}" data-i="${i}" data-v="${v}" data-fmt="${fmtV(v)}" style="cursor:pointer"/>
+        <circle cx="${px(i)}" cy="${py(v)}" r="${sel?6:4}" fill="${color}" stroke="white" stroke-width="2" pointer-events="none"/>`;
+    });
+  };
+  drawS(bcpS,CB,'bcp');
+  drawS(yapeS,CY,'yape');
+  svg.innerHTML=h;
+
+  svg.querySelectorAll('.dt-dot').forEach(d=>{
+    const handle=(e)=>{
+      e.preventDefault();
+      showTT(e,MONTHS[parseInt(d.dataset.i)],[[d.dataset.b.toUpperCase(),d.dataset.fmt]]);
+      S.period=S.period===MONTHS[parseInt(d.dataset.i)]?'all':MONTHS[parseInt(d.dataset.i)];
+      document.querySelectorAll('.pt').forEach(t=>t.classList.toggle('active',t.dataset.p===S.period));
+      renderAll();
+    };
+    d.addEventListener('click',handle);
+    d.addEventListener('touchend',handle,{passive:false});
+    d.addEventListener('mousemove',moveTT);
+    d.addEventListener('mouseleave',hideTT);
+  });
+}
+
+function renderCharts(){
+  const bM=getMonthly(BCP),yM=getMonthly(YAPE);
+  drawChart('cliChart',bM.map(m=>m.cl),    yM.map(m=>m.cl),    v=>fN(v));
+  drawChart('digChart',bM.map(m=>m.digPct), yM.map(m=>m.digPct),v=>v.toFixed(1)+'%');
+  drawChart('dvChart', bM.map(m=>m.dv),     yM.map(m=>m.dv),    v=>v.toFixed(0));
+  drawChart('efChart', bM.map(m=>m.ef),     yM.map(m=>m.ef),    v=>v.toFixed(1)+'%');
+}
+
+/* ══════════════════════════════════════════════
+   RENDER ALL
+══════════════════════════════════════════════ */
+function renderAll(){
+  renderHero();renderKPIs();renderBrandCards();renderTables();renderCharts();
+}
+
+/* ══════════════════════════════════════════════
+   EVENTS — FILTERS
+══════════════════════════════════════════════ */
+document.getElementById('periodTabs').addEventListener('click',e=>{
+  const t=e.target.closest('.pt');if(!t)return;
+  S.period=t.dataset.p;
+  document.querySelectorAll('.pt').forEach(x=>x.classList.toggle('active',x===t));
+  renderAll();
+});
+
+document.getElementById('brandF').addEventListener('click',e=>{
+  const c=e.target.closest('[data-b]');if(!c)return;
+  S.brand=c.dataset.b;
+  document.querySelectorAll('[data-b]').forEach(x=>{x.className='fchip';});
+  c.classList.add(S.brand==='yape'?'fy':'fa');
+  renderAll();
+});
+
+document.getElementById('canalF').addEventListener('click',e=>{
+  const c=e.target.closest('[data-c]');if(!c)return;
+  S.canal=c.dataset.c;
+  document.querySelectorAll('[data-c]').forEach(x=>{x.className='fchip';});
+  c.classList.add('fa');
+  renderAll();
+});
+
+/* ══════════════════════════════════════════════
+   EVENTS — BOTTOM NAV (mobile scroll to section)
+══════════════════════════════════════════════ */
+const sectionMap = {
+  resumen:  ()=>document.getElementById('kpiRow'),
+  digital:  ()=>document.getElementById('digitalHero'),
+  marcas:   ()=>document.getElementById('brandSplit'),
+  tablas:   ()=>document.getElementById('tableSec'),
+  graficos: ()=>document.querySelector('.chart-grid'),
+};
+
+document.querySelector('.bn-inner').addEventListener('click',e=>{
+  const item=e.target.closest('.bn-item');if(!item)return;
+  const sec=item.dataset.section;
+  document.querySelectorAll('.bn-item').forEach(x=>x.classList.toggle('active',x===item));
+  const el=sectionMap[sec]?.();
+  if(el){
+    const y=el.getBoundingClientRect().top+window.scrollY-70;
+    window.scrollTo({top:y,behavior:'smooth'});
+  }
+});
+
+/* ══════════════════════════════════════════════
+   EVENTS — SIDEBAR MOBILE
+══════════════════════════════════════════════ */
+const sb=document.getElementById('sidebar');
+const ov=document.getElementById('overlay');
+document.getElementById('menuToggle').addEventListener('click',()=>{
+  sb.classList.toggle('open');ov.classList.toggle('show');
+});
+ov.addEventListener('click',()=>{sb.classList.remove('open');ov.classList.remove('show');});
+
+/* ══════════════════════════════════════════════
+   SWIPE TO CLOSE SIDEBAR (mobile)
+══════════════════════════════════════════════ */
+let touchStartX=0;
+document.addEventListener('touchstart',e=>touchStartX=e.touches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-touchStartX;
+  if(dx<-60&&sb.classList.contains('open')){sb.classList.remove('open');ov.classList.remove('show');}
+  if(dx>60&&!sb.classList.contains('open')&&touchStartX<30){sb.classList.add('open');ov.classList.add('show');}
+},{passive:true});
+
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+renderAll();
+</script>
+</body>
+</html>
